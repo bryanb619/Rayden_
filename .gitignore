@@ -21,7 +21,7 @@
 
 # Repo unecessary data
 #[Aa]ssets/Plugins
-[Aa]ssets/PluginsGameWorldAssets*
+[Aa]ssets/PluginsGameWorldAssets/
 
 # Visual Studio cache directory
 .vs/
