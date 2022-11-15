@@ -22,6 +22,7 @@ public class EnemyFOV : MonoBehaviour
     private void Start()
     {
         StartCoroutine(FOVRoutine());
+        AI = GetComponent<AIBehaviour>();
     }
 
     private IEnumerator FOVRoutine()

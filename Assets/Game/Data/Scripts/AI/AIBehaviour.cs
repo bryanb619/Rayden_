@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
 using LibGameAI.FSMs;
-using URandom = UnityEngine.Random;
 
 
 // The script that controls an agent using an FSM
@@ -11,7 +10,7 @@ public class AIBehaviour : MonoBehaviour
 {
     #region Variables
    
-    private SavePoints save;
+    //private SavePoints save;
 
     // Reference to the state machine (FSM)
     private StateMachine _stateMachine;
@@ -23,28 +22,19 @@ public class AIBehaviour : MonoBehaviour
     [SerializeField] private GameObject playerRef;
     public GameObject PlayerRef => playerRef;
 
-    private bool initiateSearch;
 
-    private bool canSeePlayer;
-    public bool CanSeePlayer => canSeePlayer;
-
-    private bool PlayerInMinRange;
+    public bool PlayerInSight;
 
 
     private bool ContinuePatrol;
-    private bool RestartPatrol;
 
-    private bool LookingForPlayer;
 
     private int health = 100;
     public int Health => health;
 
     private float TimeElapsed = 0;
-
-    private float RetreatUpdateTime;
-
     // random numbers
-    private int RandomNumbers, RandomPatrolNumbers, RandomFleeNumbers;
+
 
     // navMesh
     private NavMeshAgent _novas;
@@ -53,7 +43,7 @@ public class AIBehaviour : MonoBehaviour
 
     // Array of waypoints
     [SerializeField]
-    private Transform[] PatrolPoints, SearchPoints;
+    private Transform[] PatrolPoints;
 
     // Current waypoint index
     private int destPoint = 0;
@@ -61,20 +51,8 @@ public class AIBehaviour : MonoBehaviour
     [SerializeField]
     private Transform _guardTarget, _guardTarget2, _guardTarget3, _guardTarget4;
 
-    // retreat position
-    [SerializeField]
-    private Transform _retreatPos;
-
     [SerializeField]
     private Transform _findCoverPos, _findCoverPos2, _findCoverPos3;
-
-    [SerializeField] private float MinDist = 16f;
-
-    [Header("Minimal Range Config")]
-    [SerializeField] private float sightRange = 4f;
-
-    //private float dist = Vector3.Distance(.position, transform.position);
-
 
 
     [Header("Other variables")]
@@ -83,12 +61,14 @@ public class AIBehaviour : MonoBehaviour
     [SerializeField]
     private Transform _player, _enemyNova;
 
+    //[SerializeField] Vector3 PlayerPos;
+
     // Nova enemies
     [SerializeField]
     private GameObject _Enemies;
 
     // patroling
-    private bool LeaveRetreat;
+
 
  
     [Header("Shoot & bullet settings")]
@@ -108,47 +88,25 @@ public class AIBehaviour : MonoBehaviour
     
 
     //public GameObject deathEffect;
-    [Header("Other events")]
-    [SerializeField] private UnityEvent RandomEvent;
-
-    private bool ChasePlayer;
+ 
 
 
     #endregion Variables
 
 
-    private void Awake()
-    {
-        playerRef = GameObject.FindGameObjectWithTag("Player");
-
-    }
-
     //[SerializeField] private GameObject Terminal;
     // Create the FSM
     private void Start()
     {
-        ChasePlayer = false;
-        LookingForPlayer = false;
+        PlayerInSight = false;
 
-        LeaveRetreat = false;
-        initiateSearch = false;
+        playerRef = GameObject.FindGameObjectWithTag("Player");
 
-        ContinuePatrol = false;
-        RestartPatrol = false;
-
-       
         _novas = GetComponent<NavMeshAgent>();
 
-        //PatrolChecker();
-
-        RetreatUpdateTime = 0;
         orginalTime = timeToShoot;
 
-       
-        //StartCoroutine(FOVRoutine());
-
-        RandomNumbers = URandom.Range(0, 101);
-        RandomPatrolNumbers = URandom.Range(0, 101);
+      
 
         // States
 
@@ -165,13 +123,6 @@ public class AIBehaviour : MonoBehaviour
             () => Debug.Log("Enter Player chase state"),
             ChasePlayerUpdate,
             () => Debug.Log("Leaving Player chase state"));
-
-        // Retreat State
-        State EnemyRetreatState = new State("retreating",
-            () => Debug.Log("Entered Retreat State"),
-            RetreatUpdate,
-            () => Debug.Log("Leaving retreat state"));
-
         // Find cover state
         State OnCoverState = new State("Taking cover",
             () => Debug.Log("Entered Cover State"),
@@ -184,12 +135,6 @@ public class AIBehaviour : MonoBehaviour
             PatrolChecker,
             () => Debug.Log("Left Patrol State"));
 
-        // searching state
-
-        State SearchState = new State("Searching",
-            () => Debug.Log("Entered Search State"),
-            SearchChecker,
-            () => Debug.Log("Left Search State"));
 
         #endregion States
 
@@ -215,8 +160,7 @@ public class AIBehaviour : MonoBehaviour
 
         IddleState.AddTransition(
             new Transition(
-                () => //(_player.transform.position - transform.position).magnitude <= _minDistToPlayer ||
-                    canSeePlayer == true || health <= 99 || ChasePlayer == true,
+                () => PlayerInSight == true  || health <= 99,
                 () => Debug.Log("player chase"),
                 PlayerChaseState));
 
@@ -225,116 +169,21 @@ public class AIBehaviour : MonoBehaviour
 
         PatrolState.AddTransition(
             new Transition(
-                () => canSeePlayer == true || health <= 99 || ChasePlayer == true,
+                () => PlayerInSight == true || health <= 99,
                 () => Debug.Log("player chase"),
                 PlayerChaseState));
 
-        /*
-        PlayerChaseState.AddTransition(
-            new Transition(
-                () => //URandom.value < 0.001f ||
-                    (_player.transform.position - transform.position).magnitude
-                    >= 10f,
-                () => Debug.Log("player chase"),
-               PatrolState));
-
-        */
-
-        // Chase player <-> Find cover
-        IddleState.AddTransition(
-            new Transition(
-                () => //URandom.value < 0.001f ||
-                      //(_player.transform.position - transform.position).magnitude < _minDistToPlayer,
-                    canSeePlayer == true || health <= 99|| ChasePlayer == true,
-                () => Debug.Log("player chase"),
-                PlayerChaseState));
-
-        /*
-        onGuardState.AddTransition(
-            new Transition(
-                () =>
-                    (_player.transform.position - transform.position).magnitude
-                    == _FindCoverDist
-                    || (_health) <= 60,
-                () => Debug.Log("FINDING COVER!"),
-
-        OnCoverState));*/
-
-        // Player Chase <-> Cover State 
-
-        PlayerChaseState.AddTransition(
-            new Transition(
-                () =>
-                     //(_player.transform.position - transform.position).magnitude == _FindCoverDist ||
-                     (health) <= 70,
-                () => Debug.Log("FINDING COVER!"),
-                OnCoverState));
-
-        // Player chase > enemy retreat state
-
-        PlayerChaseState.AddTransition(
-            new Transition(
-                () => //(_player.transform.position - transform.position).magnitude
-                      // < _minChaseDist ||
-                   (health) <= 50,
-                () => Debug.Log("RETREATING!"),
-                EnemyRetreatState));
-
-
-        // Player Chase <-> Search
-        
-        PlayerChaseState.AddTransition(
-            new Transition(
-                () => //URandom.value < 0.001f ||
-                      //(_player.transform.position - transform.position).magnitude < _minDistToPlayer,
-                     canSeePlayer == false , //
-                     //initiateSearch == true,
-                () => Debug.Log("AI searching for player"),
-                SearchState));
-
-
-        SearchState.AddTransition(
-            new Transition(
-                () => //URandom.value < 0.001f ||
-                      //(_player.transform.position - transform.position).magnitude < _minDistToPlayer,
-                    canSeePlayer == true || ChasePlayer == true,
-                () => Debug.Log("AI searching for player"),
-                PlayerChaseState));
-
-
-        // Search -> Patrol State
-        SearchState.AddTransition(
-            new Transition(
-                () => //URandom.value < 0.001f ||
-                      //(_player.transform.position - transform.position).magnitude < _minDistToPlayer,
-                      //LookingForPlayer == false && canSeePlayer == false &&
-                   RestartPatrol == true,
-                () => Debug.Log("AI searching for player"),
-                PatrolState));
-        
-        
-        // On Retreat > Cover transition
-        EnemyRetreatState.AddTransition(
-            new Transition(
-                () => LeaveRetreat == true,
-                () => Debug.Log("Finding cover after retreat"),
-                OnCoverState));
-
-        /*
+  
         OnCoverState.AddTransition(
             new Transition(
-                () =>
-                    (_player.transform.position - transform.position).magnitude
-                    <= _avoidPlayerOnCover
-                    || (_health) <= 20,
-                () => Debug.Log("RETREATING!"),
-                EnemyRetreatState));
-        */
+                () => health <= 20,
+                () => Debug.Log("attacking!"),
+                PlayerChaseState));
+        
 
         #endregion FSM Transitions
 
         // Create the state machine
-        //_stateMachine = new StateMachine(onGuardState);
         _stateMachine = new StateMachine(IddleState);
     }
 
@@ -346,12 +195,12 @@ public class AIBehaviour : MonoBehaviour
         Action actions = _stateMachine.Update();
         actions?.Invoke();
 
-        PIS();
-        MinimalRange();
+        //PIS();
+        //MinimalRange();
+  
+        
 
-
-
-        //print(CanSeePlayer);
+       // print(PlayerInSight);
 
 
     }
@@ -369,74 +218,22 @@ public class AIBehaviour : MonoBehaviour
             ContinuePatrol = true;
         }
 
-        /*
-        if (RandomPatrolNumbers <= 40)
-        {
-            _novas.SetDestination(_guardTarget.position);
-        }
-        
-        else if (RandomPatrolNumbers <= 70)
-        {
-            _novas.SetDestination(_guardTarget2.position);
-        }
-        else
-        {
-            _novas.SetDestination(_guardTarget3.position);
-        }
-        */
+       
     }
 
 
 
 
-    // Player in Sight
-    private void PIS()
-    {
-        save = FindObjectOfType<SavePoints>();
-
-        if (canSeePlayer)
-        {
-            save.SetSaveFalse();
-            _enemyNova.LookAt(_player.transform);
-
-            
-
-        }
-        else if(canSeePlayer == false || initiateSearch)
-        {
-            save.SetSaveTrue();
-        }
-            
-    }
-
-    private void MinimalRange()
-    {
-        PlayerInMinRange = Physics.CheckSphere(transform.position, sightRange, targetMask);
-
-        if(PlayerInMinRange)
-        {
-            ChasePlayer = true;
-            _enemyNova.LookAt(_player.transform);
-           
-        }
-        else if (!PlayerInMinRange)
-        {
-            ChasePlayer = false;
-            
-        }
-
-        //Debug.Log("Is Player in Minimal Ragen?: + "PlayerInMinRange);
-    }
-
+   
     public void FOVChecker(bool canSee)
     {
         if(canSee)
         {
-            canSeePlayer = true;
+            PlayerInSight = true;
         }
         else if(canSee == false)
         {
-            canSeePlayer = false;
+            PlayerInSight = false;
         }
 
     }
@@ -470,75 +267,23 @@ public class AIBehaviour : MonoBehaviour
         destPoint = (destPoint + 1) % PatrolPoints.Length;
     }
 
-    private void SearchChecker()
-    {
-        if (!_novas.pathPending && _novas.remainingDistance < 0.5f)
-        {
-            SearchUpdate();
-        }
-    }
-
-    private void SearchUpdate()
-    {
-        _novas.speed = 2f;
-
-        
-
-        // Returns if no points have been set up
-        if (SearchPoints.Length == 0)
-            return;
-
-        // Set the agent to go to the currently selected destination.
-        _novas.destination = SearchPoints[destPoint].position;
-
-        // Choose the next point in the array as the destination,
-        // cycling to the start if necessary.
-        destPoint = (destPoint + 1) % SearchPoints.Length;
-
-        SearchTimer();
-
-        
-    }
-
-    private void SearchTimer()
-    {
-        float SearchForPlayerTime = 0;
-
-        SearchForPlayerTime += Time.deltaTime;
-
-        if (SearchForPlayerTime >= 40)
-        {
-            print("Search for player time " + SearchForPlayerTime);
-            RestartPatrol = true;
-
-            float ResetTime = 0;
-            ResetTime = SearchForPlayerTime;
-            print("Search Time "+ SearchForPlayerTime);
-        }
-        else
-        {
-            RestartPatrol = false;
-        }
-    }
-
     private void ChasePlayerUpdate()
     {
         _novas.speed = 3f;
         _novas.SetDestination(_player.position);
-     
-        if(_novas.remainingDistance <= 4f)
+
+        if (_novas.remainingDistance <= 4f)
         {
-            _novas.speed = 0f;
+            //_novas.speed = 0f;
+            _novas.SetDestination(transform.position);
+            //Look();
         }
 
-        if(CanSeePlayer == false || _novas.remainingDistance >= 16)
-        {
-            initiateSearch = true;
-        }
-        else 
-            initiateSearch = false;
 
-        Look();
+         Look();
+        //Attack();
+        //
+
     }
 
     private void CoverUpdate()
@@ -550,34 +295,34 @@ public class AIBehaviour : MonoBehaviour
         _novas.SetDestination(_findCoverPos.position);
 
         if (_novas.remainingDistance < 1)
-            Look();
-    }
-
-    private void RetreatUpdate()
-    {
-        //detected = false;
-
-        _novas.SetDestination(_retreatPos.position);
-
-        if (_novas.remainingDistance < 1f)
-            Look();
-
-        RetreatUpdateTime += Time.deltaTime;
-
-        if (RetreatUpdateTime >= 5f)
         {
-            LeaveRetreat = true;
+            Look();
         }
 
     }
+
 
     private void Look()
     {
-        if (canSeePlayer)
+        if (PlayerInSight)
         {
             _enemyNova.LookAt(_player.transform);
+
             Shoot();
         }
+    }
+
+    private void Shoot()
+    {
+        if (Time.time > nextFire)
+        {
+
+            nextFire = Time.time + fireRate;
+
+            bullet = Instantiate(bullet, _shootPos.position, _shootPos.rotation);
+
+        }
+
     }
 
     public void TakeDamage(int _damage)
@@ -601,23 +346,5 @@ public class AIBehaviour : MonoBehaviour
         Debug.Log("Enemy died");
     }
 
-    private void Shoot()
-    {
-       
-
-        if (Time.time > nextFire)
-        {
-            
-            nextFire = Time.time + fireRate;
-
-            GameObject currentBullet = Instantiate(bullet, _shootPos.position, _shootPos.rotation);
-
-        }
-        else
-        {
-            // stop anim may not be necessary 
-            //enemy.ShootCancel();
-        }
-        
-    }
+    
 }
