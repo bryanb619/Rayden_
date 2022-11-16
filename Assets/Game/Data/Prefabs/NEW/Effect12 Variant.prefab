@@ -1,5 +1,64 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4522240172785406791
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7583245004971802766}
+  - component: {fileID: 7447769836353652182}
+  - component: {fileID: 2104863011847050329}
+  m_Layer: 0
+  m_Name: Cube
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7583245004971802766
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4522240172785406791}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4801735999476154066}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &7447769836353652182
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4522240172785406791}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1.5587769, y: 0.3926239, z: 0.8354912}
+  m_Center: {x: -0.02835083, y: -0.010917664, z: -0.08225441}
+--- !u!114 &2104863011847050329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4522240172785406791}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 422978fbf2728da4da97dd23b1953a4a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _damage: 10
 --- !u!1 &4803578132782988900
 GameObject:
   m_ObjectHideFlags: 0
@@ -31,7 +90,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4801735999476154066}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!198 &4642984810154133430
 ParticleSystem:
@@ -4789,8 +4848,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4801735999476154066}
   - component: {fileID: 4844668190062462594}
-  - component: {fileID: 7741465879790028765}
-  - component: {fileID: 5115631471695960701}
   m_Layer: 0
   m_Name: Collision
   m_TagString: Untagged
@@ -4810,6 +4867,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 7583245004971802766}
   - {fileID: 4809223820312707878}
   - {fileID: 4801451250562651844}
   - {fileID: 4801725111783617176}
@@ -4849,32 +4907,6 @@ MonoBehaviour:
   - {fileID: 4803578132782988900}
   - {fileID: 4804801953564980026}
   HUE: -1
---- !u!135 &7741465879790028765
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4803963904563652360}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.19838524
-  m_Center: {x: 0, y: 0, z: -0.12684059}
---- !u!114 &5115631471695960701
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4803963904563652360}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0d7dbcf4d7ee2e45a935cfba9a5d8e5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _damage: 10
 --- !u!1 &4804028874453907846
 GameObject:
   m_ObjectHideFlags: 0
@@ -4907,7 +4939,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4801735999476154066}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!198 &4616849172505672230
 ParticleSystem:
@@ -9541,7 +9573,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcf96328d7865b44ea2756073339a74a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DisableOnMobiles: 0
   RenderMobileDistortion: 0
   ParticleBudgetForMobiles: 0.65
 --- !u!1 &4804800498872868874
@@ -9635,7 +9666,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4801735999476154066}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!108 &4841212510997621966
 Light:
